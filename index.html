@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI辅助刺绣生成系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* 设置页面的基本样式 */
+        body {
+            font-family: 'KaiTi', '楷体', serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-image: url('background.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+        }
+
+        /* 容器样式 */
+        .container {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 0 10px;
+            box-sizing: border-box;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border: 2px solid #d4a373; /* 使用传统的中国色彩 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: calc(100% - 20px); /* 调整最大宽度 */
+            margin: 0 10px; /* 调整左右边距 */
+        }
+
+        /* 标题样式 */
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #d4a373; /* 使用传统的中国色彩 */
+        }
+
+        /* 输入组样式 */
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        /* 文本区域样式 */
+        textarea {
+            width: 97%;
+            height: 100px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            margin-bottom: 10px;
+            font-size: 16px;
+            font-family: 'KaiTi', '楷体', serif;
+        }
+
+        /* 下拉选择框样式 */
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-size: 16px;
+            font-family: 'KaiTi', '楷体', serif;
+        }
+
+        /* 按钮样式 */
+        button {
+            background-color: #d4a373;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            font-family: 'KaiTi', '楷体', serif;
+        }
+
+        /* 按钮悬停样式 */
+        button:hover {
+            background-color: #c48f65;
+        }
+
+        /* 禁用按钮样式 */
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        /* 状态文本样式 */
+        .status {
+            text-align: center;
+            margin-top: 10px;
+            color: #666;
+        }
+
+        /* 结果图片样式 */
+        .result-image {
+            max-width: 300px; /* 调整初始显示大小 */
+            max-height: 300px;
+            margin-top: 20px;
+            display: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.3s ease; /* 添加过渡效果 */
+        }
+
+        /* 错误信息样式 */
+        .error {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        /* 加载动画样式 */
+        .loader {
+            display: none;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        /* 预览容器样式 */
+        .preview-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            gap: 20px; /* 新增：预览图之间的间距 */
+        }
+
+        /* 预览图片样式 */
+        .preview-image {
+            max-width: 100px; /* 调整初始显示大小 */
+            max-height: 100px;
+            margin-top: 10px;
+            display: none;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.3s ease; /* 添加过渡效果 */
+        }
+
+        /* 上传图片容器（新增：适配两张图片） */
+        .upload-images-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        .upload-image-item {
+            flex: 1;
+            width: 48%;
+        }
+
+        /* 加载动画关键帧 */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .description-box {
+                max-width: 90%; /* 在较小屏幕上调整宽度 */
+            }
+            .upload-images-container {
+                flex-direction: column;
+            }
+            .upload-image-item {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+
+        /* 描述框和操作按钮样式 */
+        .action-button,
+        .description-box {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* 描述框样式 */
+        .description-box {
+            max-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        /* 操作按钮样式 */
+        .action-button {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* 预览框样式 */
+        .preview-box {
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            max-width: 100%;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        /* 放大样式 */
+        .preview-box.zoomed {
+            transform: scale(4);
+        }
+
+        /* 放大样式 */
+        .zoomed {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(10);
+            max-width: none; /* 取消最大宽度限制 */
+            z-index: 1000; /* 确保在最上层显示 */
+            transition: transform 0.3s ease, top 0.3s ease, left 0.3s ease;
+        }
+
+        /* 新增的文件上传控件样式 */
+        .file-upload {
+            margin-bottom: 10px;
+            width: 100%;
+            text-align: center;
+            font-family: 'KaiTi', '楷体', serif;
+            font-size: 16px;
+        }
+
+        /* 右键菜单样式 */
+        .context-menu {
+            display: none;
+            position: absolute;
+            background-color: rgba(255, 248, 220, 0.9); /* 使用米黄色背景，增加中国风 */
+            border: 1px solid #d4a373; /* 使用传统的中国色彩 */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            width: 150px;
+            font-family: 'KaiTi', '楷体', serif;
+            font-size: 16px; /* 确保字体大小一致 */
+        }
+
+        .context-menu-item {
+            padding: 10px;
+            cursor: pointer;
+            font-family: 'KaiTi', '楷体', serif;
+            font-size: 16px; /* 确保字体大小一致 */
+        }
+
+        .context-menu-item:hover {
+            background-color: #f0e68c; /* 使用浅黄色悬停效果 */
+        }
+
+        /* 添加用户状态样式 */
+        .user-status {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 4px;
+        }
+
+        .user-images {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .user-image {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .user-image:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI辅助刺绣生成系统</h1>
+        <!-- 添加用户状态显示 -->
+        <div class="user-status">
+            <span id="userStatus"></span>
+            <div id="userImages" class="user-images"></div>
+        </div>
+        <div class="input-group">
+            <!-- 图片描述输入框 -->
+            <textarea id="prompt" placeholder="请输入图片描述（例如：将图2的人物先缩小一点再放到图1中左侧路灯底下，不要新增路灯，使用图片中的路灯，并将最后的图片转换为刺绣样式）..." style="margin-bottom: 10px;"></textarea>
+
+            <!-- 新增：两张图片上传容器 -->
+            <div class="upload-images-container">
+                <!-- 第一张图片上传（对应背景图/场景图） -->
+                <div class="upload-image-item">
+                    <div class="file-upload">
+                        <label for="image1" style="display: block; margin-bottom: 10px;">选择场景图片（图1）:</label>
+                        <input type="file" id="image1" accept="image/*" style="display: none;" onchange="handleImageUpload(event, 'uploadedImage1')">
+                        <button id="uploadBtn1" onclick="document.getElementById('image1').click()">
+                            <i class="fas fa-upload"></i> 选择场景图片
+                        </button>
+                        <img id="uploadedImage1" class="preview-image" ondblclick="toggleImageSize(this)">
+                    </div>
+                </div>
+
+                <!-- 第二张图片上传（对应人物/元素图） -->
+                <div class="upload-image-item">
+                    <div class="file-upload">
+                        <label for="image2" style="display: block; margin-bottom: 10px;">选择元素图片（图2）:</label>
+                        <input type="file" id="image2" accept="image/*" style="display: none;" onchange="handleImageUpload(event, 'uploadedImage2')">
+                        <button id="uploadBtn2" onclick="document.getElementById('image2').click()">
+                            <i class="fas fa-upload"></i> 选择元素图片
+                        </button>
+                        <img id="uploadedImage2" class="preview-image" ondblclick="toggleImageSize(this)">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 朝代选择 -->
+            <select id="dynastySelect">
+                <option value="">选择朝代</option>
+                <option value="唐代">唐代</option>
+                <option value="宋代">宋代</option>
+                <option value="元代">元代</option>
+                <option value="明代">明代</option>
+                <option value="清代">清代</option>
+            </select>
+            <!-- 刺绣针法选择 -->
+            <select id="stitchSelect">
+                <option value="">选择刺绣针法</option>
+                <option value="平针绣">平针绣</option>
+                <option value="回针绣">回针绣</option>
+                <option value="缎面绣">缎面绣</option>
+                <option value="乱针绣">乱针绣</option>
+                <option value="打籽绣">打籽绣</option>
+                <option value="盘金绣">盘金绣</option>
+                <option value="钉线绣">钉线绣</option>
+                <option value="挑花绣">挑花绣</option>
+                <option value="贴布绣">贴布绣</option>
+            </select>
+            <!-- 生成图片按钮 -->
+            <button id="generateBtn" onclick="generateImage()">
+                <i class="fas fa-image"></i> 生成刺绣图片
+            </button>
+        </div>
+        <!-- 状态显示 -->
+        <div id="status" class="status"></div>
+        <!-- 错误信息显示 -->
+        <div id="error" class="error"></div>
+        <!-- 加载动画 -->
+        <div class="loader" id="loader"></div>
+        <!-- 结果图片显示 -->
+        <img id="resultImage" class="result-image" alt="生成的图片" ondblclick="toggleImageSize(this)">
+        <!-- 预览图片容器 -->
+        <div class="preview-container" id="previewContainer"></div>
+    </div>
+
+    <!-- 右键菜单 -->
+    <div id="contextMenu" class="context-menu">
+        <div class="context-menu-item" onclick="editImage()">图片编辑</div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // 添加crypto.randomUUID的兼容性处理
+        if (!crypto.randomUUID) {
+            crypto.randomUUID = function() {
+                return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+                    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+                );
+            };
+        }
+
+        const maxPreviews = 5; // 最大预览图片数量
+        const previews = []; // 存储预览图片的数组
+
+        let isMKeyPressed = false;
+        let currentImageSrc = '';
+
+        // 监听键盘按下事件
+        $(document).on('keydown', function(event) {
+            if (event.key === 'm' || event.key === 'M') {
+                isMKeyPressed = true;
+            }
+        });
+
+        // 监听键盘释放事件
+        $(document).on('keyup', function(event) {
+            if (event.key === 'm' || event.key === 'M') {
+                isMKeyPressed = false;
+            }
+        });
+
+        // 显示功能选择菜单
+        function showContextMenu(event) {
+            const contextMenu = document.getElementById('contextMenu');
+            contextMenu.style.display = 'block';
+            contextMenu.style.left = `${event.pageX}px`;
+            contextMenu.style.top = `${event.pageY}px`;
+            event.stopPropagation();
+        }
+
+        // 图片编辑功能
+        function editImage(imageSrc) {
+            window.location.href = `image_editor.html?imageSrc=${encodeURIComponent(imageSrc)}`;
+        }
+
+        $(document).ready(function() {
+            // 绑定右键单击事件到所有图片元素，包括预览图片
+            $(document).on('contextmenu', '.preview-image, .result-image', function(event) {
+                event.preventDefault(); // 阻止默认右键菜单
+                currentImageSrc = $(this).attr('src'); // 记录被点击图片的src
+                showContextMenu(event);
+            });
+
+            // 绑定双击事件到图片元素
+            $('.preview-image, .result-image').on('dblclick', function() {
+                toggleImageSize(this);
+            });
+
+            // 隐藏功能选择菜单
+            $(document).on('click', function() {
+                $('#contextMenu').hide();
+            });
+
+            // 图片编辑功能
+            $('#contextMenu .context-menu-item').on('click', function() {
+                if (currentImageSrc) {
+                    editImage(currentImageSrc);
+                } else {
+                    console.error('未找到图片元素的src属性');
+                }
+            });
+        });
+
+        // 添加会话检查和用户状态更新
+        async function checkSession() {
+            try {
+                const response = await fetch('/check-session', {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                document.getElementById('userStatus').textContent = `会话ID: ${data.user_id}`;
+                await loadUserImages();
+            } catch (error) {
+                console.error('会话检查失败:', error);
+            }
+        }
+
+        // 加载用户图片
+        async function loadUserImages() {
+            try {
+                const response = await fetch('/user-images', {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                const userImagesDiv = document.getElementById('userImages');
+                userImagesDiv.innerHTML = '';
+
+                data.images.forEach(image => {
+                    const img = document.createElement('img');
+                    img.src = image.url;
+                    img.className = 'user-image';
+                    img.title = `创建时间: ${new Date(image.created).toLocaleString()}`;
+                    img.onclick = () => toggleImageSize(img);
+                    userImagesDiv.appendChild(img);
+                });
+            } catch (error) {
+                console.error('加载用户图片失败:', error);
+            }
+        }
+
+        // 页面加载时检查会话
+        document.addEventListener('DOMContentLoaded', checkSession);
+
+        // 定期检查会话状态
+        setInterval(checkSession, 300000); // 每5分钟检查一次
+
+        // 修改生成图片函数，适配两张图片上传
+        async function generateImage() {
+            const promptInput = document.getElementById('prompt');
+            let prompt = promptInput.value.trim();
+            if (!prompt.includes("刺绣")) {
+                prompt += " 刺绣";
+            }
+
+            const dynasty = document.getElementById('dynastySelect').value;
+            const stitch = document.getElementById('stitchSelect').value;
+            const generateBtn = document.getElementById('generateBtn');
+            const status = document.getElementById('status');
+            const error = document.getElementById('error');
+            const resultImage = document.getElementById('resultImage');
+            const loader = document.getElementById('loader');
+
+            // 新增：获取两张上传的图片
+            const image1 = document.getElementById('image1').files[0];
+            const image2 = document.getElementById('image2').files[0];
+
+            // 验证：必须上传两张图片
+            if (!prompt) {
+                error.textContent = '请输入刺绣描述';
+                return;
+            }
+            if (!image1 || !image2) {
+                error.textContent = '请上传两张图片（场景图+元素图）';
+                return;
+            }
+
+            // 拼接完整提示词（保留朝代/针法选择）
+            const fullPrompt = `${dynasty ? dynasty + ' ' : ''}${stitch ? stitch + ' ' : ''}${prompt}`;
+
+            generateBtn.disabled = true;
+            loader.style.display = 'block';
+            status.textContent = '正在生成刺绣图片...';
+            error.textContent = '';
+            resultImage.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('prompt', fullPrompt);
+            // 新增：添加两张图片到FormData（对应后端的image1和image2）
+            formData.append('image1', image1);
+            formData.append('image2', image2);
+
+            try {
+                const apiUrl = window.location.protocol + '//' + window.location.hostname + ':5000/generate-image';
+                console.log('请求地址:', apiUrl);
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    credentials: 'include',
+                    mode: 'cors'
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`服务器错误: ${errorData.error || '未知错误'}`);
+                }
+
+                const result = await response.json();
+                console.log("API Response:", result);
+
+                if (result.success) {
+                    resultImage.src = result.image_url;
+                    resultImage.style.display = 'block';
+                    status.textContent = '刺绣图片生成成功！';
+                    error.textContent = '';
+                    addPreview(result.image_url);
+                    await loadUserImages(); // 刷新用户图片列表
+                } else {
+                    error.textContent = result.error || '生成刺绣图片失败';
+                    status.textContent = '';
+                    console.error("API错误:", result);
+                }
+            } catch (e) {
+                console.error("请求错误:", e);
+                error.textContent = e.message;
+                status.textContent = '';
+            } finally {
+                generateBtn.disabled = false;
+                loader.style.display = 'none';
+            }
+        }
+
+        // 新增：修改图片上传处理函数，支持指定预览图片ID
+        function handleImageUpload(event, previewImageId) {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const uploadedImage = document.getElementById(previewImageId);
+                        uploadedImage.src = e.target.result;
+                        uploadedImage.style.display = 'block';
+
+                        // 显示文件信息
+                        const status = document.getElementById('status');
+                        status.textContent = `已选择图片: ${file.name} (${Math.round(file.size / 1024)}KB)`;
+                    };
+                    reader.onerror = function(e) {
+                        console.error("文件读取错误:", e);
+                        const error = document.getElementById('error');
+                        error.textContent = "图片读取失败，请重试";
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    const error = document.getElementById('error');
+                    error.textContent = "请选择图片文件（jpg、png等格式）";
+                }
+            }
+        }
+
+        // 添加预览图片
+        function addPreview(imageUrl) {
+            if (previews.length >= maxPreviews) {
+                previews.shift(); // 移除最早的图片 URL
+            }
+            previews.push(imageUrl);
+            updatePreviews();
+        }
+
+        // 更新预览图片显示
+        function updatePreviews() {
+            const previewContainer = document.getElementById('previewContainer');
+            previewContainer.innerHTML = '';
+            previews.forEach(url => {
+                const img = document.createElement('img');
+                img.src = url;
+                img.className = 'preview-image';
+                img.ondblclick = () => toggleImageSize(img);
+                img.style.display = 'block'; // 确保图片显示
+                previewContainer.appendChild(img);
+            });
+        }
+
+        // 切换图片大小
+        function toggleImageSize(img) {
+            if (img.classList.contains('zoomed')) {
+                img.style.transform = 'scale(1)';
+                img.style.position = 'static';
+                img.style.zIndex = 'auto';
+            } else {
+                img.style.transform = 'scale(4)';
+                img.style.position = 'fixed';
+                img.style.top = '50%';
+                img.style.left = '50%';
+                img.style.transform = 'translate(-50%, -50%) scale(3)';
+                img.style.zIndex = '1000';
+            }
+            img.classList.toggle('zoomed');
+        }
+
+        // 确保图片元素绑定了双击事件
+        document.querySelectorAll('.preview-image, .result-image').forEach(img => {
+            img.addEventListener('dblclick', function() {
+                toggleImageSize(img);
+            });
+        });
+    </script>
+</body>
+</html>

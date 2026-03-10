@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI辅助刺绣图片编辑系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* 设置页面的基本样式 */
+        body {
+            font-family: 'KaiTi', '楷体', serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-image: url('background.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+        }
+
+        /* 容器样式 */
+        .container {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 0 10px;
+            box-sizing: border-box;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border: 2px solid #d4a373; /* 使用传统的中国色彩 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: calc(100% - 20px); /* 调整最大宽度 */
+            margin: 0 10px; /* 调整左右边距 */
+        }
+
+        /* 标题样式 */
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #d4a373; /* 使用传统的中国色彩 */
+        }
+
+        /* 图片容器样式 */
+        .image-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .image-container img {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 滑动条样式 */
+        .slider {
+            width: 80%;
+            margin: 10px 0;
+        }
+
+        /* 按钮样式 */
+        button {
+            background-color: #d4a373;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            font-family: 'KaiTi', '楷体', serif;
+        }
+
+        button:hover {
+            background-color: #c48f65;
+        }
+
+        .image-container img#editedImage {
+            display: none; /* 初始隐藏编辑后的图片 */
+        }
+
+        /* 控件容器样式 */
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        /* 控件项样式 */
+        .control-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 80%;
+            margin-bottom: 10px;
+        }
+
+        /* 标签和滑动条对齐 */
+        .control-item label {
+            flex: 1;
+            text-align: right;
+            margin-right: 10px;
+        }
+
+        .control-item input {
+            flex: 3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI辅助刺绣图片编辑系统</h1>
+        <div class="image-container">
+            <img id="originalImage" src="" alt="要编辑的图片">
+        </div>
+        <div class="controls">
+            <div class="control-item">
+                <label for="contrast">对比度:</label>
+                <input type="range" id="contrast" class="slider" min="0" max="200" value="100">
+            </div>
+            <div class="control-item">
+                <label for="brightness">亮度:</label>
+                <input type="range" id="brightness" class="slider" min="0" max="200" value="100">
+            </div>
+            <div class="control-item">
+                <label for="hue">色相:</label>
+                <input type="range" id="hue" class="slider" min="0" max="360" value="180">
+            </div>
+            <div class="control-item">
+                <label for="saturation">饱和度:</label>
+                <input type="range" id="saturation" class="slider" min="0" max="200" value="100">
+            </div>
+            <div class="control-item">
+                <label for="lightness">明度:</label>
+                <input type="range" id="lightness" class="slider" min="0" max="200" value="100">
+            </div>
+            <div class="control-item">
+                <button onclick="applyEdits()">应用编辑</button>
+            </div>
+        </div>
+        <div class="image-container">
+            <img id="editedImage" src="" alt="编辑后的图片">
+        </div>
+    </div>
+
+    <script>
+        // 从URL参数中获取图片路径
+        function getImageSrcFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('imageSrc');
+        }
+
+        // 示例：加载要编辑的图片
+        const imageSrc = getImageSrcFromUrl();
+        if (imageSrc) {
+            document.getElementById('originalImage').src = imageSrc;
+        }
+
+        function applyEdits() {
+            const contrast = document.getElementById('contrast').value;
+            const brightness = document.getElementById('brightness').value;
+            // 这里可以添加对比度和亮度调整的逻辑
+            // 示例：将编辑后的图片路径设置为原始图片路径
+            const editedImage = document.getElementById('editedImage');
+            editedImage.src = document.getElementById('originalImage').src;
+            editedImage.style.display = 'block'; // 显示编辑后的图片
+        }
+    </script>
+</body>
+</html>
