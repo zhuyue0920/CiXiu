@@ -542,18 +542,20 @@
             formData.append('image2', image2);
 
             try {
-                const apiUrl = window.location.protocol + '//' + window.location.hostname + ':5000/generate-image';
-                console.log('请求地址:', apiUrl);
+                    // 【正确写法】去掉:5000，直接用相对路径，自动匹配线上域名
+                    const apiUrl = '/generate-image';
+                    console.log('请求地址:', apiUrl);
 
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
                         'Accept': 'application/json',
-                    },
-                    credentials: 'include',
-                    mode: 'cors'
-                });
+                        },
+                        // 后端没开Cookie就删掉这行，避免跨域额外问题
+                        // credentials: 'include',
+                         mode: 'cors'
+                    });
 
                 if (!response.ok) {
                     const errorData = await response.json();
